@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    /* custom simplifiction */
+    .bar,
+    .legend,
+    .card:nth-child(2),
+    .card:nth-child(4),
+    .card:nth-child(6),
+    .card:nth-child(7) {
+      display: none !important;
+    }
+  </style>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f2f4f9;
+      --card: #ffffff;
+      --card2: #e8ecf4;
+      --line: #dde2ee;
+      --text: #131826;
+      --muted: #6a7590;
+      --accent: #2f66f0;
+      --pos: #0f9e74;
+      --neg: #e0452f;
+      --bad: #d6334a;
+      --hero1: #e3ebff;
+      --hero2: #ffffff;
+      --c-fed: #ff8a5b;
+      --c-ss: #a85bf0;
+      --c-med: #f05bb8;
+      --c-lunch: #f0b92e;
+      --c-espp: #2f66f0;
+      --c-net: #16c196;
+      --shadow: 0 4px 14px rgba(47, 102, 240, .3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0f17;
+        --card: #141a26;
+        --card2: #1b2332;
+        --line: #26304a;
+        --text: #eef2fa;
+        --muted: #8c97b0;
+        --accent: #5b8cff;
+        --pos: #7cf0c8;
+        --neg: #ff8a5b;
+        --bad: #ff6b7a;
+        --hero1: #1c2a52;
+        --hero2: #141a26;
+        --c-fed: #ff8a5b;
+        --c-ss: #c47bff;
+        --c-med: #ff7bd0;
+        --c-lunch: #ffd15b;
+        --c-espp: #5b8cff;
+        --c-net: #7cf0c8;
+        --shadow: 0 4px 14px rgba(91, 140, 255, .35);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    html,
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif
+    }
+
+    body {
+      padding: max(16px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.4
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px
+    }
+
+    .q {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px
+    }
+
+    .srow {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .srow input[type=range] {
+      flex: 1;
+      min-width: 0
+    }
+
+    .srow .val {
+      text-align: right;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 16px
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px
+    }
+
+    .days+.days {
+      margin-top: 6px
+    }
+
+    .day {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--card2);
+      color: var(--muted);
+      border-radius: 12px;
+      padding: 0;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      height: 46px;
+      transition: .12s
+    }
+
+    .day.on {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: var(--shadow)
+    }
+
+    .day:active {
+      transform: scale(.94)
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 36px;
+      background: transparent;
+      margin: 0
+    }
+
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: 99px;
+      background: linear-gradient(to right, var(--accent) var(--p, 0%), var(--card2) var(--p, 0%))
+    }
+
+    input[type=range]::-moz-range-track {
+      height: 8px;
+      border-radius: 99px;
+      background: var(--card2)
+    }
+
+    input[type=range]::-moz-range-progress {
+      height: 8px;
+      border-radius: 99px;
+      background: var(--accent)
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent);
+      margin-top: -10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .3)
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent)
+    }
+
+    .hero {
+      background: linear-gradient(160deg, var(--hero1), var(--hero2) 75%);
+      text-align: center;
+      padding: 22px 16px 18px
+    }
+
+    .hero .label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em
+    }
+
+    .hero .big {
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--pos);
+      font-variant-numeric: tabular-nums;
+      margin: 2px 0 14px
+    }
+
+    .hero .second {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      font-variant-numeric: tabular-nums;
+      margin-top: 2px;
+      color: var(--pos)
+    }
+
+    .hero .second.bad {
+      color: var(--bad)
+    }
+
+    .bar {
+      display: flex;
+      height: 14px;
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 18px 0 4px;
+      background: var(--card2)
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      transition: width .25s
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 12px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 5px
+    }
+
+    h2 {
+      font-size: 13px;
+      margin: 0 0 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      font-variant-numeric: tabular-nums
+    }
+
+    .row:last-child {
+      border-bottom: 0
+    }
+
+    .row .n {
+      color: var(--muted);
+      font-size: 12px;
+      display: block
+    }
+
+    .row .a {
+      font-weight: 600;
+      text-align: right;
+      white-space: nowrap
+    }
+
+    .row.sub-total {
+      font-weight: 700
+    }
+
+    .neg {
+      color: var(--neg)
+    }
+
+    .pos {
+      color: var(--pos)
+    }
+
+    .total {
+      font-size: 15px
+    }
+  </style>
+</head>
+
+<body>
+  <section class="card">
+    <p class="q">What days will you work?</p>
+    <div class="days" id="w0"></div>
+    <div class="days" id="w1"></div>
+  </section>
+
+  <section class="card">
+    <p class="q">What is your daily lunchpad usage?</p>
+    <div class="srow">
+      <input type="range" id="lunch" min="0" max="60" step="1" value="5">
+      <span class="val" id="lunchV">$5</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="q">What is your ESPP allocation?</p>
+    <div class="srow">
+      <input type="range" id="espp" min="0" max="100" step="1" value="50">
+      <span class="val" id="esppV">50%</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="q">What is your average spending over 14 days?</p>
+    <div class="srow">
+      <input type="range" id="spend" min="0" max="3000" step="0.01" value="541.01">
+      <span class="val" id="spendV">$541.01</span>
+    </div>
+  </section>
+
+  <section class="card hero">
+    <div class="label">Take-home</div>
+    <div class="big" id="net">$0.00</div>
+    <div class="label">After consumption</div>
+    <div class="second" id="after">$0.00</div>
+    <div class="bar" id="bar"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="card">
+    <h2>Earnings</h2>
+    <div id="earn"></div>
+  </section>
+
+  <section class="card">
+    <h2>Deductions</h2>
+    <div id="ded"></div>
+  </section>
+
+  <script>
+    const RATE = 22, OT_RATE = 33, HRS_PER_DAY = 12, WEEK_CAP = 40;
+    const SS = 0.062, MED = 0.0145;
+    const STD_DED = 16100, PERIODS = 26;
+    const BRACKETS = [[12400, .10], [50400, .12], [105700, .22], [201775, .24], [256225, .32], [640600, .35], [Infinity, .37]];
+    const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const $ = id => document.getElementById(id);
+    const fmt = n => (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const sel = [new Set([0, 1, 2]), new Set([0, 1, 2, 3])];
+    [0, 1].forEach(w => {
+      const wrap = $("w" + w);
+      DAYS.forEach((name, i) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "day" + (sel[w].has(i) ? " on" : "");
+        b.textContent = name;
+        b.setAttribute("aria-pressed", sel[w].has(i));
+        b.onclick = () => {
+          sel[w].has(i) ? sel[w].delete(i) : sel[w].add(i);
+          b.classList.toggle("on", sel[w].has(i));
+          b.setAttribute("aria-pressed", sel[w].has(i));
+          render();
+        };
+        wrap.appendChild(b);
+      });
+    });
+
+    function fedTaxPerPeriod(gross) {
+      const taxable = Math.max(0, gross * PERIODS - STD_DED);
+      let tax = 0, prev = 0;
+      for (const [cap, r] of BRACKETS) {
+        if (taxable > prev) tax += (Math.min(taxable, cap) - prev) * r;
+        prev = cap;
+      }
+      return tax / PERIODS;
+    }
+
+    function weekPay(days) {
+      const hrs = days * HRS_PER_DAY;
+      const reg = Math.min(hrs, WEEK_CAP), ot = Math.max(0, hrs - WEEK_CAP);
+      return { hrs, reg, ot, pay: reg * RATE + ot * OT_RATE };
+    }
+
+    function setFill(el) { el.style.setProperty("--p", ((el.value - el.min) / (el.max - el.min) * 100) + "%"); }
+    const row = (label, amt, cls = "", note = "") =>
+      `<div class="row ${cls}"><div>${label}${note ? `<span class="n">${note}</span>` : ""}</div><div class="a">${amt}</div></div>`;
+
+    function render() {
+      ["lunch", "espp", "spend"].forEach(id => setFill($(id)));
+      const lunchDay = +$("lunch").value, esppPct = +$("espp").value, spend = +$("spend").value;
+      $("lunchV").textContent = "$" + lunchDay;
+      $("esppV").textContent = esppPct + "%";
+      $("spendV").textContent = fmt(spend);
+
+      const w = [weekPay(sel[0].size), weekPay(sel[1].size)];
+      const days = sel[0].size + sel[1].size;
+
+      const gross = w[0].pay + w[1].pay;
+      const fed = fedTaxPerPeriod(gross);
+      const ss = gross * SS, med = gross * MED;
+      const taxes = fed + ss + med;
+      const lunch = lunchDay * days;
+      const afterTaxLunch = Math.max(0, gross - taxes - lunch);
+      const espp = afterTaxLunch * esppPct / 100;
+      const net = gross - taxes - lunch - espp;
+      const left = net - spend;
+
+      $("net").textContent = fmt(net);
+      const a = $("after");
+      a.textContent = fmt(left);
+      a.classList.toggle("bad", left < 0);
+
+      const parts = [
+        ["Federal tax", fed, "var(--c-fed)"], ["Social Security", ss, "var(--c-ss)"], ["Medicare", med, "var(--c-med)"],
+        ["Lunchpad", lunch, "var(--c-lunch)"], ["ESPP", espp, "var(--c-espp)"], ["Take-home", Math.max(0, net), "var(--c-net)"]];
+      const tot = parts.reduce((s, p) => s + p[1], 0) || 1;
+      $("bar").innerHTML = parts.map(p => `<span style="width:${p[1] / tot * 100}%;background:${p[2]}"></span>`).join("");
+      $("legend").innerHTML = parts.map(p => `<span><i style="background:${p[2]}"></i>${p[0]}</span>`).join("");
+
+      let e = "";
+      [0, 1].forEach(i => {
+        const x = w[i];
+        e += row(`Week ${i + 1}`, fmt(x.pay), "",
+          `${x.hrs} hrs · ${x.reg} @ $${RATE}` + (x.ot ? ` + ${x.ot} OT @ $${OT_RATE}` : ""));
+      });
+      e += row("Gross pay", fmt(gross), "sub-total total");
+      $("earn").innerHTML = e;
+
+      $("ded").innerHTML =
+        row("Federal income tax", "−" + fmt(fed), "neg") +
+        row("Social Security", "−" + fmt(ss), "neg") +
+        row("Medicare", "−" + fmt(med), "neg") +
+        row("Lunchpad", "−" + fmt(lunch), "neg") +
+        row("ESPP", "−" + fmt(espp), "neg") +
+        row("Take-home", fmt(net), "sub-total total pos");
+    }
+    ["lunch", "espp", "spend"].forEach(id => $(id).addEventListener("input", render));
+    render();
+  </script>
+</body>
+
+</html>
