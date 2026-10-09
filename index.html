@@ -13,7 +13,7 @@
     .card:nth-child(4),
     .card:nth-child(6),
     .card:nth-child(7) {
-      display: none !important;
+      /* display: none !important; */
     }
   </style>
   <style>
@@ -128,7 +128,7 @@
     }
 
     .days+.days {
-      margin-top: 6px
+      margin-top: 12px
     }
 
     .day {
@@ -136,13 +136,14 @@
       border: 1px solid var(--line);
       background: var(--card2);
       color: var(--muted);
-      border-radius: 12px;
+      border-radius: 50%;
       padding: 0;
       font: inherit;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       height: 46px;
+      width: 46px;
       transition: .12s
     }
 
@@ -150,7 +151,7 @@
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
-      box-shadow: var(--shadow)
+      /* box-shadow: var(--shadow) */
     }
 
     .day:active {
