@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>Expenses</title>
+<style>
+  :root {
+    --bg: #111214;
+    --fg: #f2f2f3;
+    --muted: #8b8d93;
+    --line: #26282c;
+    --card: #1a1b1e;
+    --accent: #f2f2f3;
+    --danger: #ff5d5d;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fafafa; --fg: #17181a; --muted: #85878d;
+      --line: #e6e6e9; --card: #ffffff; --accent: #17181a; --danger: #d93636;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; justify-content: center;
+  }
+  #app {
+    width: 100%; max-width: 520px; min-height: 100%;
+    display: flex; flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+  }
+  header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 16px; position: sticky; top: 0; background: var(--bg);
+    border-bottom: 1px solid var(--line); z-index: 5;
+  }
+  header h1 { font-size: 20px; margin: 0; flex: 1; }
+  button, .btn {
+    font: inherit; color: var(--fg); background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  button.danger { color: var(--danger); }
+  button.icon { padding: 8px 12px; }
+  main { flex: 1; padding: 0 0 calc(24px + env(safe-area-inset-bottom)); }
+
+  .row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .row:active { background: var(--card); }
+  .circle { width: 44px; height: 44px; border-radius: 50%; flex: none; }
+  .col { min-width: 0; flex: 1; }
+  .col b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .col .normal { display: block; }
+  .col .faded { display: block; color: var(--muted); font-size: 14px; }
+  .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
+  .total { padding: 12px 16px; color: var(--muted); font-size: 14px; }
+
+  form { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
+  input {
+    font: inherit; font-size: 16px; color: var(--fg); background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+    width: 100%;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .actions { display: flex; gap: 10px; margin-top: 4px; }
+  .actions button { flex: 1; padding: 12px; }
+  .preview { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
+  .preview .circle { width: 22px; height: 22px; }
+
+  .viz { padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 8px; }
+  .bar-wrap { position: relative; height: 36px; }
+  .bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; min-width: 4px; }
+  .bar-text {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 10px; gap: 10px;
+    font-size: 14px; font-weight: 600; color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,.45);
+  }
+  .bar-text span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-text span:last-child { flex: none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr"></header>
+  <main id="main"></main>
+</div>
+
+<script>
+(function () {
+  var KEY = "expenses.v1";
+  var SAT = 65, LIT = 52;
+
+  // [description, category, cost, duration in days]
+  var DEFAULTS = [
+    ["rent","housing",237.25,30],
+    ["100 gigabytes Google One","software",19.99,365],
+    ["Amazon Prime","software",7.71,30],
+    ["2% milk","calories",5.23,9.75],
+    ["frozen banana slices","calories",3.86,6.8],
+    ["protein powder","calories",239.70,47.43],
+    ["cocoa powder","calories",41.00,60],
+    ["collagen powder","calories",45.00,30],
+    ["extra virgin olive oil","calories",70.00,50],
+    ["canned black beans","calories",0.89,1],
+    ["macadamia nuts","calories",22.99,30],
+    ["creatine powder","supplements",40.00,100],
+    ["omega-3 softgels","supplements",23.76,30],
+    ["vitamin D softgels","supplements",12.91,360],
+    ["lycopene softgels","supplements",34.95,120],
+    ["astaxanthin softgels","supplements",27.95,60],
+    ["beta carotene softgels","supplements",21.99,90],
+    ["Zellie's dental gum","toiletries",58.00,100],
+    ["Aquaphor","toiletries",12.19,30],
+    ["toothpaste","toiletries",9.88,180],
+    ["floss picks","toiletries",3.09,90],
+    ["Attitude shampoo","toiletries",12.87,180],
+    ["Dr. Bronner's eucalyptus body wash","toiletries",9.99,180],
+    ["caffeine capsules","supplements",11.95,250],
+    ["melatonin tablets","supplements",9.55,120],
+    ["YouTube Premium","software",15.99,30],
+    ["toilet paper","toiletries",5.68,180],
+    ["Attitude laundry detergent","toiletries",19.95,280],
+    ["utilities","housing",48.66,30],
+    ["minoxidil tablets","supplements",10.00,90],
+    ["dutasteride capsules","supplements",10.00,90],
+    ["tadalafil tablets","supplements",4.22,30],
+    ["deodorant","toiletries",6.96,240],
+    ["isotretinoin tablets","supplements",109.00,30],
+    ["phone connectivity","software",11.57,30]
+  ];
+  function defaults() {
+    return DEFAULTS.map(function (d, i) {
+      return { id: "d" + i, description: d[0], category: d[1], cost: d[2], duration: d[3] };
+    });
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw === null) { var d = defaults(); localStorage.setItem(KEY, JSON.stringify(d)); return d; }
+      return JSON.parse(raw) || [];
+    } catch (e) { return defaults(); }
+  }
+  function save(items) {
+    try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {}
+  }
+  var items = load();
+
+  function hash(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function color(cat) {
+    var c = (cat || "").trim().toLowerCase();
+    return "hsl(" + (hash(c) % 360) + "," + SAT + "%," + LIT + "%)";
+  }
+  function money(n) {
+    return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function num(n) {
+    return String(Math.round(n * 100) / 100);
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function per30(it) { return it.cost / it.duration * 30; }
+
+  var hdr = document.getElementById("hdr");
+  var main = document.getElementById("main");
+
+  function go(h) { location.hash = h; }
+
+  function renderList() {
+    hdr.innerHTML = '<h1>Expenses</h1>' +
+      '<button id="viz">Visualize</button>' +
+      '<button id="add" class="primary">+ New</button>';
+    document.getElementById("add").onclick = function () { go("#/new"); };
+    document.getElementById("viz").onclick = function () { go("#/viz"); };
+
+    if (!items.length) {
+      main.innerHTML = '<div class="empty">No expenses yet.<br>Tap “+ New” to add one.</div>';
+      return;
+    }
+    var total = items.reduce(function (a, it) { return a + per30(it); }, 0);
+    var html = items.map(function (it) {
+      return '<div class="row" data-id="' + it.id + '">' +
+        '<div class="circle" style="background:' + color(it.category) + '"></div>' +
+        '<div class="col"><b>' + esc(it.description) + '</b>' +
+        '<span class="normal">' + money(it.cost) + ' every ' + num(it.duration) + ' days</span>' +
+        '<span class="faded">' + esc(it.category) + '</span></div></div>';
+    }).join("");
+    html += '<div class="total">Total: ' + money(total) + ' per 30 days</div>';
+    main.innerHTML = html;
+    Array.prototype.forEach.call(main.querySelectorAll(".row"), function (r) {
+      r.onclick = function () { go("#/edit/" + r.getAttribute("data-id")); };
+    });
+  }
+
+  function renderForm(id) {
+    var it = id ? items.filter(function (x) { return x.id === id; })[0] : null;
+    if (id && !it) { go("#/"); return; }
+    hdr.innerHTML = '<button class="icon" id="back">←</button><h1>' + (it ? "Edit expense" : "New expense") + '</h1>';
+    document.getElementById("back").onclick = function () { go("#/"); };
+
+    main.innerHTML =
+      '<form id="f" autocomplete="off">' +
+      '<label>Description<input name="description" required placeholder="protein powder" value="' + esc(it ? it.description : "") + '"></label>' +
+      '<label>Cost ($)<input name="cost" required type="number" inputmode="decimal" step="any" min="0" placeholder="239.70" value="' + (it ? it.cost : "") + '"></label>' +
+      '<label>Duration (days)<input name="duration" required type="number" inputmode="decimal" step="any" min="0.01" placeholder="47.43" value="' + (it ? it.duration : "") + '"></label>' +
+      '<label>Category<input name="category" required placeholder="calories" value="' + esc(it ? it.category : "") + '"></label>' +
+      '<div class="preview"><div class="circle" id="pv"></div><span id="pt"></span></div>' +
+      '<div class="actions">' +
+      (it ? '<button type="button" class="danger" id="del">Delete</button>' : '') +
+      '<button type="submit" class="primary">Save</button></div></form>';
+
+    var f = document.getElementById("f");
+    var pv = document.getElementById("pv"), pt = document.getElementById("pt");
+    function upd() {
+      var c = f.category.value.trim();
+      pv.style.background = c ? color(c) : "transparent";
+      pv.style.border = c ? "none" : "1px dashed var(--muted)";
+      var cost = parseFloat(f.cost.value), dur = parseFloat(f.duration.value);
+      pt.textContent = (cost > 0 && dur > 0) ? money(cost / dur * 30) + " per 30 days" : "Category color";
+    }
+    f.oninput = upd; upd();
+
+    f.onsubmit = function (e) {
+      e.preventDefault();
+      var data = {
+        description: f.description.value.trim(),
+        cost: parseFloat(f.cost.value),
+        duration: parseFloat(f.duration.value),
+        category: f.category.value.trim()
+      };
+      if (!data.description || !data.category || !(data.cost >= 0) || !(data.duration > 0)) return;
+      if (it) { for (var k in data) it[k] = data[k]; }
+      else { data.id = uid(); items.unshift(data); }
+      save(items); go("#/");
+    };
+    var del = document.getElementById("del");
+    if (del) del.onclick = function () {
+      if (!confirm("Delete “" + it.description + "”?")) return;
+      items = items.filter(function (x) { return x.id !== it.id; });
+      save(items); go("#/");
+    };
+  }
+
+  function renderViz() {
+    hdr.innerHTML = '<button class="icon" id="back">←</button><h1>Cost per 30 days</h1>';
+    document.getElementById("back").onclick = function () { go("#/"); };
+    if (!items.length) {
+      main.innerHTML = '<div class="empty">Nothing to visualize yet.</div>';
+      return;
+    }
+    var sorted = items.slice().sort(function (a, b) { return per30(b) - per30(a); });
+    var max = per30(sorted[0]) || 1;
+    main.innerHTML = '<div class="viz">' + sorted.map(function (it) {
+      var v = per30(it), w = Math.max(0, v / max * 100);
+      return '<div class="bar-wrap">' +
+        '<div class="bar" style="width:' + w + '%;background:' + color(it.category) + '"></div>' +
+        '<div class="bar-text"><span>' + esc(it.description) + '</span><span>' + money(v) + '</span></div></div>';
+    }).join("") + '</div>';
+  }
+
+  function route() {
+    var h = location.hash || "#/";
+    var m;
+    if (h === "#/new") renderForm(null);
+    else if ((m = h.match(/^#\/edit\/(.+)$/))) renderForm(m[1]);
+    else if (h === "#/viz") renderViz();
+    else renderList();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
+</body>
+</html>
